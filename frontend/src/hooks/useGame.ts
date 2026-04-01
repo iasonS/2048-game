@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import * as api from "../api/gameApi";
+import { useKeyboard } from "./useKeyboard";
+import { useSwipe } from "./useSwipe";
 
 const EMPTY_BOARD: api.Board = Array.from({ length: 4 }, () =>
   Array(4).fill(null),
 );
-const SWIPE_THRESHOLD = 30;
 const AUTO_PLAY_DELAY = 300;
 
 function loadBestScore(): number {
@@ -154,13 +155,15 @@ export function useGame() {
       }
 
       if (busyRef.current) {
-        // Retry shortly
+        if (cancelled || !autoPlayRef.current) return;
         setTimeout(step, 50);
         return;
       }
 
       try {
-        // Get AI suggestion
+        busyRef.current = true;
+        setIsLoading(true);
+
         const aiRes = await api.aiSuggest(boardRef.current);
         if (cancelled || !autoPlayRef.current) return;
 
@@ -169,7 +172,6 @@ export function useGame() {
           return;
         }
 
-        // Execute the move
         const status2 = gameStatusRef.current;
         if (
           status2 === "LOST" ||
@@ -179,51 +181,17 @@ export function useGame() {
           return;
         }
 
-        busyRef.current = true;
-        setIsLoading(true);
+        await processMove(aiRes.recommendedDirection);
+        setAiHint(aiRes.recommendedDirection);
 
-        const res = await api.move(
-          boardRef.current,
-          aiRes.recommendedDirection,
-          scoreRef.current,
-        );
-        if (cancelled || !autoPlayRef.current) {
-          busyRef.current = false;
-          setIsLoading(false);
-          return;
-        }
-
-        if (res.spawnedCell) {
-          setMoves(res.moves ?? []);
-          setBoard(res.board);
-          setScore(res.score);
-          setSpawnedCell(res.spawnedCell);
-          setAiHint(aiRes.recommendedDirection);
-
-          if (keepPlayingRef.current) {
-            setGameStatus(res.gameState === "LOST" ? "LOST" : "PLAYING");
-          } else {
-            setGameStatus(res.gameState);
-          }
-
-          const newBest = Math.max(bestScoreRef.current, res.score);
-          if (newBest > bestScoreRef.current) {
-            setBestScore(newBest);
-            localStorage.setItem("2048-best", String(newBest));
-          }
-        }
-
-        busyRef.current = false;
-        setIsLoading(false);
-
-        // Schedule next step
         if (!cancelled && autoPlayRef.current) {
           setTimeout(step, AUTO_PLAY_DELAY);
         }
       } catch {
+        setAutoPlay(false);
+      } finally {
         busyRef.current = false;
         setIsLoading(false);
-        setAutoPlay(false);
       }
     };
 
@@ -233,69 +201,10 @@ export function useGame() {
     return () => {
       cancelled = true;
     };
-  }, [autoPlay]);
+  }, [autoPlay, processMove]);
 
-  // Keyboard input
-  useEffect(() => {
-    const keyMap: Record<string, api.Direction> = {
-      ArrowUp: "UP",
-      ArrowDown: "DOWN",
-      ArrowLeft: "LEFT",
-      ArrowRight: "RIGHT",
-      w: "UP",
-      s: "DOWN",
-      a: "LEFT",
-      d: "RIGHT",
-    };
-
-    const handler = (e: KeyboardEvent) => {
-      const dir = keyMap[e.key];
-      if (dir) {
-        e.preventDefault();
-        doMove(dir);
-      }
-    };
-
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [doMove]);
-
-  // Touch/swipe input
-  useEffect(() => {
-    let startX = 0;
-    let startY = 0;
-
-    const onTouchStart = (e: TouchEvent) => {
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-    };
-
-    const onTouchEnd = (e: TouchEvent) => {
-      const dx = e.changedTouches[0].clientX - startX;
-      const dy = e.changedTouches[0].clientY - startY;
-      const absDx = Math.abs(dx);
-      const absDy = Math.abs(dy);
-
-      if (Math.max(absDx, absDy) < SWIPE_THRESHOLD) return;
-
-      let dir: api.Direction;
-      if (absDx > absDy) {
-        dir = dx > 0 ? "RIGHT" : "LEFT";
-      } else {
-        dir = dy > 0 ? "DOWN" : "UP";
-      }
-
-      e.preventDefault();
-      doMove(dir);
-    };
-
-    window.addEventListener("touchstart", onTouchStart, { passive: true });
-    window.addEventListener("touchend", onTouchEnd, { passive: false });
-    return () => {
-      window.removeEventListener("touchstart", onTouchStart);
-      window.removeEventListener("touchend", onTouchEnd);
-    };
-  }, [doMove]);
+  useKeyboard(doMove);
+  useSwipe(doMove);
 
   // Start game on mount
   useEffect(() => {

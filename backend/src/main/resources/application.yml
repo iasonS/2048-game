@@ -18,6 +18,9 @@ micronaut:
           allowed-headers:
             - Content-Type
 
+ai:
+  provider: ${AI_PROVIDER:expectimax}
+
 endpoints:
   health:
     enabled: true

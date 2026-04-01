@@ -10,12 +10,14 @@ public class TileSpawner {
 
   private final Random random = new Random();
 
-  /** Places a 2 at a random empty cell (for initial board setup). */
-  public void spawnInitial(Board board) {
-    List<int[]> empty = board.emptyCells();
-    if (empty.isEmpty()) return;
-    int[] cell = empty.get(random.nextInt(empty.size()));
-    board.set(cell[0], cell[1], 2);
+  /** Places exactly 2 tiles of value 2 at random empty cells. */
+  public void spawnInitialTiles(Board board) {
+    for (int i = 0; i < 2; i++) {
+      List<int[]> empty = board.emptyCells();
+      if (empty.isEmpty()) return;
+      int[] cell = empty.get(random.nextInt(empty.size()));
+      board.set(cell[0], cell[1], 2);
+    }
   }
 
   /**

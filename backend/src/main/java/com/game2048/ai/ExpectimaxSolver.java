@@ -9,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 
 @Singleton
 @RequiredArgsConstructor
-public class AiSolver {
+public class ExpectimaxSolver implements AiProvider {
 
   private static final int DEFAULT_DEPTH = 3;
   private final GameEngine gameEngine;

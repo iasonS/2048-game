@@ -46,6 +46,7 @@ dependencies {
     implementation 'io.micronaut:micronaut-http-server-netty'
     implementation 'io.micronaut:micronaut-jackson-databind'
     implementation 'io.micronaut:micronaut-management'
+    implementation 'com.anthropic:anthropic-java:2.19.0'
 
     runtimeOnly 'ch.qos.logback:logback-classic'
     runtimeOnly 'org.yaml:snakeyaml'

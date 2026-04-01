@@ -49,8 +49,12 @@ public class Board {
   }
 
   public boolean containsValue(int value) {
-    return findFirst((row, col) -> grid[row][col] != null && grid[row][col] == value ? true : null)
-        != null;
+    for (int row = 0; row < SIZE; row++) {
+      for (int col = 0; col < SIZE; col++) {
+        if (grid[row][col] != null && grid[row][col] == value) return true;
+      }
+    }
+    return false;
   }
 
   public Board copy() {

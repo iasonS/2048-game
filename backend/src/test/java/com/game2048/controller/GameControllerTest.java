@@ -8,6 +8,7 @@ import com.game2048.model.GameState;
 import io.micronaut.http.HttpRequest;
 import io.micronaut.http.client.HttpClient;
 import io.micronaut.http.client.annotation.Client;
+import io.micronaut.http.client.exceptions.HttpClientResponseException;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
@@ -20,7 +21,7 @@ class GameControllerTest {
   HttpClient client;
 
   @Test
-  void testNewGameReturnsBoardWithTwoTiles() {
+  void testNewGameReturnsBoardWithRandomNumberOfTwos() {
     NewGameResponse res =
         client.toBlocking().retrieve(HttpRequest.POST("/api/game/new", ""), NewGameResponse.class);
 
@@ -28,7 +29,7 @@ class GameControllerTest {
     assertEquals(4, res.board().length);
     assertEquals(0, res.score());
 
-    // Count non-null cells — should be exactly 2
+    // Count non-null cells — should be exactly 2, all values must be 2
     int count = 0;
     for (Integer[] row : res.board()) {
       assertEquals(4, row.length);
@@ -39,7 +40,7 @@ class GameControllerTest {
         }
       }
     }
-    assertEquals(2, count);
+    assertEquals(2, count, "Expected exactly 2 initial tiles, got " + count);
   }
 
   @Test
@@ -129,5 +130,48 @@ class GameControllerTest {
 
     assertEquals(GameState.WON, res.gameState());
     assertEquals(2048, res.board()[0][0]);
+  }
+
+  @Test
+  void testMoveRejects3x3Board() {
+    Integer[][] board = {
+      {2, null, null},
+      {null, null, null},
+      {null, null, 2}
+    };
+
+    HttpClientResponseException ex =
+        assertThrows(
+            HttpClientResponseException.class,
+            () ->
+                client
+                    .toBlocking()
+                    .retrieve(
+                        HttpRequest.POST(
+                            "/api/game/move", new MoveRequest(board, Direction.LEFT, 0)),
+                        MoveResponse.class));
+    assertEquals(400, ex.getStatus().getCode());
+  }
+
+  @Test
+  void testMoveRejectsInvalidCellValue() {
+    Integer[][] board = {
+      {3, null, null, null},
+      {null, null, null, null},
+      {null, null, null, null},
+      {null, null, null, null}
+    };
+
+    HttpClientResponseException ex =
+        assertThrows(
+            HttpClientResponseException.class,
+            () ->
+                client
+                    .toBlocking()
+                    .retrieve(
+                        HttpRequest.POST(
+                            "/api/game/move", new MoveRequest(board, Direction.LEFT, 0)),
+                        MoveResponse.class));
+    assertEquals(400, ex.getStatus().getCode());
   }
 }

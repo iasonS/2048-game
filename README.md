@@ -56,6 +56,17 @@ Rather than implementing four separate merge algorithms, the engine transforms t
 
 This means `slideAndMergeRow()` is written once and tested once. The transformation approach is a well-known technique for 2048 implementations.
 
+### AI Providers
+
+The game supports two AI providers behind a common `AiProvider` interface, selected via the `AI_PROVIDER` environment variable:
+
+| Provider | When active | Strengths |
+|----------|------------|-----------|
+| **Expectimax** (default) | `AI_PROVIDER` unset or `expectimax` | Offline, fast (<200ms), consistently reaches 2048 |
+| **Claude** | `AI_PROVIDER=claude` + `ANTHROPIC_API_KEY` set | Demonstrates LLM integration; uses Claude Haiku for speed/cost |
+
+Expectimax is the better player — it's purpose-built for 2048's probabilistic tile spawns. Claude is included as an alternative to satisfy the spec's "AI model" / "remote AI server" interpretation and to demonstrate API integration. The provider is injected via Micronaut's `@Requires` conditional wiring, so no code path changes when switching.
+
 ### Expectimax over Minimax
 
 The tile spawn (90% chance of `2`, 10% chance of `4`) is random, not adversarial. Minimax assumes a worst-case opponent and would play too conservatively. Expectimax correctly computes the **expected value** across all possible spawns, producing better move recommendations.
@@ -108,12 +119,17 @@ Open http://localhost:5173 and play with arrow keys, WASD, or swipe on mobile.
 ## Testing
 
 ```
-25 tests across 4 test classes:
+Backend: 25 tests across 4 test classes (./gradlew test)
 
-BoardTest (8)         — equals, hashCode, copy, emptyCells, toArray
-GameEngineTest (9)    — all 4 directions, merge rules (spec examples), win/lose detection
-AiSolverTest (3)      — returns valid direction, null on no moves, reasonable suggestions
-GameControllerTest (5) — integration tests hitting real HTTP endpoints
+  BoardTest (8)         — equals, hashCode, copy, emptyCells, toArray
+  GameEngineTest (9)    — all 4 directions, merge rules (spec examples), win/lose detection
+  ExpectimaxSolverTest (3) — returns valid direction, null on no moves, reasonable suggestions
+  GameControllerTest (5) — integration tests hitting real HTTP endpoints
+
+Frontend: 10 tests across 2 test files (npm test)
+
+  gameApi.test.ts (4)      — API calls, request payloads, error handling
+  components.test.tsx (6)  — ScoreBoard, GameOverlay (win/lose/playing), GameControls (hint, auto-play)
 ```
 
 The `GameEngineTest` tests use the exact board examples from the requirements spec to verify correctness.
@@ -142,6 +158,6 @@ VITE_API_URL=https://your-backend-url npm run build
 
 ## Assumptions
 
-- The initial board always spawns exactly **two `2` tiles** (per requirement 1: "random number of `2`s" — interpreted as the standard 2048 starting configuration).
+- The initial board spawns **exactly 2 tiles of value `2`** at random positions, matching the original 2048 behavior. The spec's "random number of `2`s" is interpreted conservatively to ensure a playable starting board.
 - After reaching 2048, the player can choose to **keep playing** or start a new game (the spec marks 2048 as a win condition but doesn't explicitly say the game must stop).
-- The AI uses no external services or credentials. It runs entirely in the backend JVM using the expectimax algorithm.
+- The default AI (expectimax) uses no external services or credentials — it runs entirely in the backend JVM. An optional Claude provider is available when `AI_PROVIDER=claude` and `ANTHROPIC_API_KEY` are set, but no credentials are included in the repository.

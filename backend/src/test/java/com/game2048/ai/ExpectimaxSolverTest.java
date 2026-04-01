@@ -10,14 +10,14 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class AiSolverTest {
+class ExpectimaxSolverTest {
 
-  private AiSolver solver;
+  private ExpectimaxSolver solver;
 
   @BeforeEach
   void setUp() {
     GameEngine engine = new GameEngine(new TileSpawner());
-    solver = new AiSolver(engine);
+    solver = new ExpectimaxSolver(engine);
   }
 
   @Test
