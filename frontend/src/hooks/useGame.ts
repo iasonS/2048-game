@@ -1,12 +1,14 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import * as api from '../api/gameApi';
+import { useState, useEffect, useCallback, useRef } from "react";
+import * as api from "../api/gameApi";
 
-const EMPTY_BOARD: api.Board = Array.from({ length: 4 }, () => Array(4).fill(null));
+const EMPTY_BOARD: api.Board = Array.from({ length: 4 }, () =>
+  Array(4).fill(null),
+);
 const SWIPE_THRESHOLD = 30;
 const AUTO_PLAY_DELAY = 300;
 
 function loadBestScore(): number {
-  const stored = localStorage.getItem('2048-best');
+  const stored = localStorage.getItem("2048-best");
   return stored ? parseInt(stored, 10) : 0;
 }
 
@@ -14,7 +16,7 @@ export function useGame() {
   const [board, setBoard] = useState<api.Board>(EMPTY_BOARD);
   const [score, setScore] = useState(0);
   const [bestScore, setBestScore] = useState(loadBestScore);
-  const [gameStatus, setGameStatus] = useState<api.GameStatus>('PLAYING');
+  const [gameStatus, setGameStatus] = useState<api.GameStatus>("PLAYING");
   const [isLoading, setIsLoading] = useState(false);
   const [spawnedCell, setSpawnedCell] = useState<[number, number] | null>(null);
   const [moves, setMoves] = useState<api.TileMove[]>([]);
@@ -48,7 +50,7 @@ export function useGame() {
       const res = await api.newGame();
       setBoard(res.board);
       setScore(res.score);
-      setGameStatus('PLAYING');
+      setGameStatus("PLAYING");
       setSpawnedCell(null);
     } finally {
       setIsLoading(false);
@@ -58,7 +60,7 @@ export function useGame() {
 
   const continueAfterWin = useCallback(() => {
     setKeepPlaying(true);
-    setGameStatus('PLAYING');
+    setGameStatus("PLAYING");
   }, []);
 
   const processMove = useCallback(async (direction: api.Direction) => {
@@ -72,7 +74,7 @@ export function useGame() {
     setSpawnedCell(res.spawnedCell);
 
     if (keepPlayingRef.current) {
-      setGameStatus(res.gameState === 'LOST' ? 'LOST' : 'PLAYING');
+      setGameStatus(res.gameState === "LOST" ? "LOST" : "PLAYING");
     } else {
       setGameStatus(res.gameState);
     }
@@ -80,7 +82,7 @@ export function useGame() {
     const newBest = Math.max(bestScoreRef.current, res.score);
     if (newBest > bestScoreRef.current) {
       setBestScore(newBest);
-      localStorage.setItem('2048-best', String(newBest));
+      localStorage.setItem("2048-best", String(newBest));
     }
   }, []);
 
@@ -93,7 +95,8 @@ export function useGame() {
     try {
       while (moveQueueRef.current.length > 0) {
         const status = gameStatusRef.current;
-        if (status === 'LOST' || (status === 'WON' && !keepPlayingRef.current)) break;
+        if (status === "LOST" || (status === "WON" && !keepPlayingRef.current))
+          break;
 
         const dir = moveQueueRef.current.shift()!;
         await processMove(dir);
@@ -105,17 +108,20 @@ export function useGame() {
     }
   }, [processMove]);
 
-  const doMove = useCallback((direction: api.Direction) => {
-    const status = gameStatusRef.current;
-    if (status === 'LOST') return;
-    if (status === 'WON' && !keepPlayingRef.current) return;
+  const doMove = useCallback(
+    (direction: api.Direction) => {
+      const status = gameStatusRef.current;
+      if (status === "LOST") return;
+      if (status === "WON" && !keepPlayingRef.current) return;
 
-    moveQueueRef.current.push(direction);
-    drainQueue();
-  }, [drainQueue]);
+      moveQueueRef.current.push(direction);
+      drainQueue();
+    },
+    [drainQueue],
+  );
 
   const getAiHint = useCallback(async () => {
-    if (busyRef.current || gameStatusRef.current === 'LOST') return;
+    if (busyRef.current || gameStatusRef.current === "LOST") return;
     busyRef.current = true;
     setIsLoading(true);
 
@@ -129,7 +135,7 @@ export function useGame() {
   }, []);
 
   const toggleAutoPlay = useCallback(() => {
-    setAutoPlay(prev => !prev);
+    setAutoPlay((prev) => !prev);
   }, []);
 
   // Auto-play loop: ask AI for best move, execute it, repeat
@@ -142,7 +148,7 @@ export function useGame() {
       if (cancelled || !autoPlayRef.current) return;
 
       const status = gameStatusRef.current;
-      if (status === 'LOST' || (status === 'WON' && !keepPlayingRef.current)) {
+      if (status === "LOST" || (status === "WON" && !keepPlayingRef.current)) {
         setAutoPlay(false);
         return;
       }
@@ -165,7 +171,10 @@ export function useGame() {
 
         // Execute the move
         const status2 = gameStatusRef.current;
-        if (status2 === 'LOST' || (status2 === 'WON' && !keepPlayingRef.current)) {
+        if (
+          status2 === "LOST" ||
+          (status2 === "WON" && !keepPlayingRef.current)
+        ) {
           setAutoPlay(false);
           return;
         }
@@ -173,7 +182,11 @@ export function useGame() {
         busyRef.current = true;
         setIsLoading(true);
 
-        const res = await api.move(boardRef.current, aiRes.recommendedDirection, scoreRef.current);
+        const res = await api.move(
+          boardRef.current,
+          aiRes.recommendedDirection,
+          scoreRef.current,
+        );
         if (cancelled || !autoPlayRef.current) {
           busyRef.current = false;
           setIsLoading(false);
@@ -188,7 +201,7 @@ export function useGame() {
           setAiHint(aiRes.recommendedDirection);
 
           if (keepPlayingRef.current) {
-            setGameStatus(res.gameState === 'LOST' ? 'LOST' : 'PLAYING');
+            setGameStatus(res.gameState === "LOST" ? "LOST" : "PLAYING");
           } else {
             setGameStatus(res.gameState);
           }
@@ -196,7 +209,7 @@ export function useGame() {
           const newBest = Math.max(bestScoreRef.current, res.score);
           if (newBest > bestScoreRef.current) {
             setBestScore(newBest);
-            localStorage.setItem('2048-best', String(newBest));
+            localStorage.setItem("2048-best", String(newBest));
           }
         }
 
@@ -217,14 +230,22 @@ export function useGame() {
     // Start the loop
     setTimeout(step, AUTO_PLAY_DELAY);
 
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [autoPlay]);
 
   // Keyboard input
   useEffect(() => {
     const keyMap: Record<string, api.Direction> = {
-      ArrowUp: 'UP', ArrowDown: 'DOWN', ArrowLeft: 'LEFT', ArrowRight: 'RIGHT',
-      w: 'UP', s: 'DOWN', a: 'LEFT', d: 'RIGHT',
+      ArrowUp: "UP",
+      ArrowDown: "DOWN",
+      ArrowLeft: "LEFT",
+      ArrowRight: "RIGHT",
+      w: "UP",
+      s: "DOWN",
+      a: "LEFT",
+      d: "RIGHT",
     };
 
     const handler = (e: KeyboardEvent) => {
@@ -235,8 +256,8 @@ export function useGame() {
       }
     };
 
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, [doMove]);
 
   // Touch/swipe input
@@ -259,39 +280,53 @@ export function useGame() {
 
       let dir: api.Direction;
       if (absDx > absDy) {
-        dir = dx > 0 ? 'RIGHT' : 'LEFT';
+        dir = dx > 0 ? "RIGHT" : "LEFT";
       } else {
-        dir = dy > 0 ? 'DOWN' : 'UP';
+        dir = dy > 0 ? "DOWN" : "UP";
       }
 
       e.preventDefault();
       doMove(dir);
     };
 
-    window.addEventListener('touchstart', onTouchStart, { passive: true });
-    window.addEventListener('touchend', onTouchEnd, { passive: false });
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchend", onTouchEnd, { passive: false });
     return () => {
-      window.removeEventListener('touchstart', onTouchStart);
-      window.removeEventListener('touchend', onTouchEnd);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchend", onTouchEnd);
     };
   }, [doMove]);
 
   // Start game on mount
   useEffect(() => {
     let cancelled = false;
-    api.newGame().then(res => {
+    api.newGame().then((res) => {
       if (!cancelled) {
         setBoard(res.board);
         setScore(res.score);
-        setGameStatus('PLAYING');
+        setGameStatus("PLAYING");
         setSpawnedCell(null);
       }
     });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return {
-    board, score, bestScore, gameStatus, isLoading, spawnedCell, moves, aiHint, autoPlay,
-    startNewGame, doMove, getAiHint, continueAfterWin, toggleAutoPlay,
+    board,
+    score,
+    bestScore,
+    gameStatus,
+    isLoading,
+    spawnedCell,
+    moves,
+    aiHint,
+    autoPlay,
+    startNewGame,
+    doMove,
+    getAiHint,
+    continueAfterWin,
+    toggleAutoPlay,
   };
 }

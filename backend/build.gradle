@@ -3,6 +3,14 @@ plugins {
     id 'application'
     id 'io.micronaut.application' version '4.3.4'
     id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'com.diffplug.spotless' version '6.25.0'
+}
+
+spotless {
+    java {
+        googleJavaFormat()
+        removeUnusedImports()
+    }
 }
 
 java {
@@ -30,6 +38,8 @@ application {
 }
 
 dependencies {
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
+    compileOnly 'org.projectlombok:lombok:1.18.30'
     annotationProcessor 'io.micronaut:micronaut-inject-java'
     implementation 'io.micronaut:micronaut-inject'
     implementation 'io.micronaut:micronaut-runtime'

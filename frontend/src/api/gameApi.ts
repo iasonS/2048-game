@@ -1,8 +1,8 @@
-const API_BASE = import.meta.env.VITE_API_URL || '';
+const API_BASE = import.meta.env.VITE_API_URL || "";
 
 export type Board = (number | null)[][];
-export type Direction = 'UP' | 'DOWN' | 'LEFT' | 'RIGHT';
-export type GameStatus = 'PLAYING' | 'WON' | 'LOST';
+export type Direction = "UP" | "DOWN" | "LEFT" | "RIGHT";
+export type GameStatus = "PLAYING" | "WON" | "LOST";
 
 export interface TileMove {
   fromRow: number;
@@ -31,8 +31,8 @@ export interface AiResponse {
 
 async function post<T>(path: string, body?: unknown): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: body ? JSON.stringify(body) : undefined,
   });
   if (!res.ok) throw new Error(`API error: ${res.status}`);
@@ -40,13 +40,17 @@ async function post<T>(path: string, body?: unknown): Promise<T> {
 }
 
 export function newGame(): Promise<NewGameResponse> {
-  return post('/api/game/new');
+  return post("/api/game/new");
 }
 
-export function move(board: Board, direction: Direction, score: number): Promise<MoveResponse> {
-  return post('/api/game/move', { board, direction, score });
+export function move(
+  board: Board,
+  direction: Direction,
+  score: number,
+): Promise<MoveResponse> {
+  return post("/api/game/move", { board, direction, score });
 }
 
 export function aiSuggest(board: Board): Promise<AiResponse> {
-  return post('/api/game/ai-suggest', { board });
+  return post("/api/game/ai-suggest", { board });
 }

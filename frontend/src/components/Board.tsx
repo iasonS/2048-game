@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import type { Board as BoardType, TileMove } from '../api/gameApi';
+import { useEffect, useRef, useState } from "react";
+import type { Board as BoardType, TileMove } from "../api/gameApi";
 
 interface BoardProps {
   board: BoardType;
@@ -65,7 +65,8 @@ export function Board({ board, spawnedCell, moves }: BoardProps) {
           if (val == null) continue;
 
           const cellKey = key(r, c);
-          const isSpawned = spawnedCell != null && spawnedCell[0] === r && spawnedCell[1] === c;
+          const isSpawned =
+            spawnedCell != null && spawnedCell[0] === r && spawnedCell[1] === c;
 
           let id: number;
           if (isSpawned) {
@@ -74,13 +75,23 @@ export function Board({ board, spawnedCell, moves }: BoardProps) {
             id = destinationIds.get(cellKey)!;
           } else {
             // Merged result at this position — reuse any old tile that moved here
-            const incoming = moves.find(m => m.toRow === r && m.toCol === c && !m.merged);
-            const oldKey = incoming ? key(incoming.fromRow, incoming.fromCol) : null;
+            const incoming = moves.find(
+              (m) => m.toRow === r && m.toCol === c && !m.merged,
+            );
+            const oldKey = incoming
+              ? key(incoming.fromRow, incoming.fromCol)
+              : null;
             const oldTile = oldKey ? prevMap.get(oldKey) : null;
             id = oldTile?.id ?? nextTileId++;
           }
 
-          const tile: TileData = { id, value: val, row: r, col: c, isNew: isSpawned };
+          const tile: TileData = {
+            id,
+            value: val,
+            row: r,
+            col: c,
+            isNew: isSpawned,
+          };
           nextTiles.push(tile);
           nextMap.set(cellKey, tile);
         }
@@ -95,7 +106,13 @@ export function Board({ board, spawnedCell, moves }: BoardProps) {
           const cellKey = key(r, c);
           const existing = prevMap.get(cellKey);
           const id = existing?.id ?? nextTileId++;
-          const tile: TileData = { id, value: val, row: r, col: c, isNew: false };
+          const tile: TileData = {
+            id,
+            value: val,
+            row: r,
+            col: c,
+            isNew: false,
+          };
           nextTiles.push(tile);
           nextMap.set(cellKey, tile);
         }
@@ -111,13 +128,15 @@ export function Board({ board, spawnedCell, moves }: BoardProps) {
       {Array.from({ length: 16 }, (_, i) => (
         <div key={`bg-${i}`} className="cell" />
       ))}
-      {tiles.map(tile => (
+      {tiles.map((tile) => (
         <div
           key={tile.id}
-          className={`tile tile-${tile.value}${tile.isNew ? ' tile-new' : ''}`}
+          className={`tile tile-${tile.value}${tile.isNew ? " tile-new" : ""}`}
           style={posStyle(tile.row, tile.col)}
         >
-          <span className={`tile-value${tile.value >= 1024 ? ' tile-small' : tile.value >= 128 ? ' tile-medium' : ''}`}>
+          <span
+            className={`tile-value${tile.value >= 1024 ? " tile-small" : tile.value >= 128 ? " tile-medium" : ""}`}
+          >
             {tile.value}
           </span>
         </div>
