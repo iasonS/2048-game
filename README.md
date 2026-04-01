@@ -18,7 +18,7 @@ The application uses a **stateless client-server architecture**. The frontend ho
 
 ### Why this architecture?
 
-- **Testability**: Game logic lives in the backend where it can be unit-tested and integration-tested without a browser. 25 tests cover the engine, AI, board model, and HTTP endpoints.
+- **Testability**: Game logic lives in the backend where it can be unit-tested and integration-tested without a browser. 30 tests cover the engine, AI, board model, and HTTP endpoints.
 - **Separation of concerns**: The frontend is purely presentational — it renders the board, handles input, and animates tiles. All game rules are enforced server-side.
 - **Stateless API**: Each request contains the full board state, making the backend horizontally scalable and trivially restartable.
 
@@ -95,7 +95,7 @@ Early iterations used frontend heuristics to guess which tile moved where by com
 ```bash
 cd backend
 ./gradlew run        # starts on :8080
-./gradlew test       # runs 25 tests
+./gradlew test       # runs 30 tests
 ```
 
 ### Frontend
@@ -119,17 +119,21 @@ Open http://localhost:5173 and play with arrow keys, WASD, or swipe on mobile.
 ## Testing
 
 ```
-Backend: 25 tests across 4 test classes (./gradlew test)
+Backend: 30 tests across 5 test classes (./gradlew test)
 
-  BoardTest (8)         — equals, hashCode, copy, emptyCells, toArray
-  GameEngineTest (9)    — all 4 directions, merge rules (spec examples), win/lose detection
+  BoardTest (8)            — equals, hashCode, copy, emptyCells, toArray
+  GameEngineTest (9)       — all 4 directions, merge rules (spec examples), win/lose detection
   ExpectimaxSolverTest (3) — returns valid direction, null on no moves, reasonable suggestions
-  GameControllerTest (5) — integration tests hitting real HTTP endpoints
+  ClaudeAiSolverTest (3)   — DI wiring, fallback to expectimax on API failure, no-moves edge case
+  GameControllerTest (7)   — integration tests hitting real HTTP endpoints, input validation
 
-Frontend: 10 tests across 2 test files (npm test)
+Frontend: 26 tests across 5 test files (npm test)
 
-  gameApi.test.ts (4)      — API calls, request payloads, error handling
   components.test.tsx (6)  — ScoreBoard, GameOverlay (win/lose/playing), GameControls (hint, auto-play)
+  gameApi.test.ts (4)      — API calls, request payloads, error handling
+  useGame.test.ts (7)      — game lifecycle, moves, win/lose, best score persistence
+  useKeyboard.test.ts (4)  — arrow keys, WASD, preventDefault, ignored keys
+  useSwipe.test.ts (5)     — swipe directions, threshold, diagonal resolution
 ```
 
 The `GameEngineTest` tests use the exact board examples from the requirements spec to verify correctness.

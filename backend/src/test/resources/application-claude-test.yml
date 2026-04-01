@@ -1,0 +1,4 @@
+ai:
+  provider: claude
+
+ANTHROPIC_API_KEY: "test-dummy-key-not-real"

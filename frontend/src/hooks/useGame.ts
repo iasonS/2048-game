@@ -9,8 +9,8 @@ const EMPTY_BOARD: api.Board = Array.from({ length: 4 }, () =>
 const AUTO_PLAY_DELAY = 300;
 
 function loadBestScore(): number {
-  const stored = localStorage.getItem("2048-best");
-  return stored ? parseInt(stored, 10) : 0;
+  const n = Number(localStorage.getItem("2048-best"));
+  return Number.isFinite(n) && n > 0 ? n : 0;
 }
 
 export function useGame() {
