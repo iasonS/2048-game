@@ -1,0 +1,24 @@
+micronaut:
+  application:
+    name: game-2048
+  server:
+    port: ${PORT:8080}
+    cors:
+      enabled: true
+      configurations:
+        web:
+          allowed-origins-regex:
+            - https://.*\.onrender\.com
+          allowed-origins:
+            - http://localhost:5173
+            - http://localhost:4173
+          allowed-methods:
+            - POST
+            - OPTIONS
+          allowed-headers:
+            - Content-Type
+
+endpoints:
+  health:
+    enabled: true
+    sensitive: false

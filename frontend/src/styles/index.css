@@ -1,0 +1,254 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: #faf8ef;
+  color: #776e65;
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+  touch-action: none;
+}
+
+#root {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  max-width: 500px;
+  width: 100%;
+  user-select: none;
+}
+
+.title {
+  font-size: 64px;
+  font-weight: 700;
+  color: #776e65;
+  margin-bottom: 8px;
+}
+
+/* Score */
+.score-container {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.score-box {
+  background: #bbada0;
+  border-radius: 6px;
+  padding: 8px 24px;
+  text-align: center;
+  min-width: 80px;
+}
+
+.score-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #eee4da;
+  letter-spacing: 1px;
+}
+
+.score-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.btn {
+  background: #8f7a66;
+  color: #f9f6f2;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn:hover:not(:disabled) {
+  background: #9f8b77;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-ai {
+  background: #f65e3b;
+  min-width: 130px;
+}
+
+.btn-ai:hover:not(:disabled) {
+  background: #e55535;
+}
+
+.btn-auto {
+  background: #6c5ce7;
+}
+
+.btn-auto:hover:not(:disabled) {
+  background: #5a4bd1;
+}
+
+.btn-auto-active {
+  background: #e17055;
+  animation: pulse 1.5s ease infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Board */
+.board-wrapper {
+  position: relative;
+}
+
+.board {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  background: #bbada0;
+  border-radius: 8px;
+  padding: 10px;
+  width: min(calc(100vw - 40px), 460px);
+  aspect-ratio: 1;
+}
+
+/* Background cells */
+.cell {
+  background: rgba(238, 228, 218, 0.35);
+  border-radius: 6px;
+}
+
+/* Tile — absolutely positioned, slides via top/left transition */
+.tile {
+  position: absolute;
+  width: calc((100% - 50px) / 4);
+  height: calc((100% - 50px) / 4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-weight: 700;
+  transition: top 0.15s ease, left 0.15s ease;
+  z-index: 1;
+}
+
+.tile-value {
+  font-size: clamp(24px, 5vw, 42px);
+  line-height: 1;
+}
+
+.tile-medium {
+  font-size: clamp(20px, 4vw, 34px);
+}
+
+.tile-small {
+  font-size: clamp(16px, 3.5vw, 28px);
+}
+
+/* Tile colors */
+.tile-2    { background: #eee4da; color: #776e65; }
+.tile-4    { background: #ede0c8; color: #776e65; }
+.tile-8    { background: #f2b179; color: #f9f6f2; }
+.tile-16   { background: #f59563; color: #f9f6f2; }
+.tile-32   { background: #f67c5f; color: #f9f6f2; }
+.tile-64   { background: #f65e3b; color: #f9f6f2; }
+.tile-128  { background: #edcf72; color: #f9f6f2; }
+.tile-256  { background: #edcc61; color: #f9f6f2; }
+.tile-512  { background: #edc850; color: #f9f6f2; }
+.tile-1024 { background: #edc53f; color: #f9f6f2; }
+.tile-2048 { background: #edc22e; color: #f9f6f2; }
+.tile-4096 { background: #3c3a32; color: #f9f6f2; }
+.tile-8192 { background: #3c3a32; color: #f9f6f2; }
+
+/* Merging ghost tiles slide underneath */
+.tile-merging {
+  z-index: 0;
+}
+
+/* Spawn animation */
+.tile-new {
+  animation: pop 0.15s ease 0.1s both;
+}
+
+@keyframes pop {
+  0% { scale: 0; }
+  60% { scale: 1.1; }
+  100% { scale: 1; }
+}
+
+/* Overlay */
+.overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  animation: fadeIn 0.3s ease;
+}
+
+.overlay-lose {
+  background: rgba(238, 228, 218, 0.73);
+}
+
+.overlay-win {
+  background: rgba(237, 194, 46, 0.5);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.overlay-content {
+  text-align: center;
+}
+
+.overlay-content h2 {
+  font-size: 48px;
+  color: #776e65;
+  margin-bottom: 16px;
+}
+
+.overlay-win .overlay-content h2 {
+  color: #f9f6f2;
+}
+
+.overlay-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+/* Instructions */
+.instructions {
+  margin-top: 16px;
+  font-size: 14px;
+  color: #9e948a;
+}
