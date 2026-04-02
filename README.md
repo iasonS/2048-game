@@ -98,6 +98,12 @@ cd backend
 ./gradlew test       # runs 30 tests
 ```
 
+To use Claude AI instead of the default Expectimax solver:
+
+```bash
+AI_PROVIDER=claude ANTHROPIC_API_KEY=sk-ant-... ./gradlew run
+```
+
 ### Frontend
 
 ```bash

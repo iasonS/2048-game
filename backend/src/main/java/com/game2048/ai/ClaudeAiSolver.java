@@ -42,7 +42,8 @@ public class ClaudeAiSolver implements AiProvider {
   @PostConstruct
   void init() {
     client = AnthropicOkHttpClient.builder().apiKey(apiKey).build();
-    LOG.info("Claude AI provider initialized (model: claude-haiku-4-5, fallback: expectimax)");
+    LOG.info(
+        "Claude AI provider initialized (model: claude-haiku-4-5-20251001, fallback: expectimax)");
   }
 
   @PreDestroy
@@ -67,22 +68,14 @@ public class ClaudeAiSolver implements AiProvider {
   }
 
   private Direction askClaude(Board board) {
-    String boardStr = formatBoard(board);
-    String prompt =
-        "You are playing 2048. The board is a 4x4 grid. Tiles slide in the chosen direction, "
-            + "and adjacent equal tiles merge. The goal is to reach 2048.\n\n"
-            + "Current board (null = empty):\n"
-            + boardStr
-            + "\n\nWhat is the single best move? "
-            + "Respond with a JSON object containing a \"direction\" field "
-            + "with one of: UP, DOWN, LEFT, RIGHT.";
+    String prompt = buildPrompt(board);
 
     StructuredMessage<MoveResponse> message =
         client
             .messages()
             .create(
                 MessageCreateParams.builder()
-                    .model(Model.CLAUDE_HAIKU_4_5)
+                    .model(Model.CLAUDE_HAIKU_4_5_20251001)
                     .maxTokens(64)
                     .addUserMessage(prompt)
                     .outputConfig(MoveResponse.class, JsonSchemaLocalValidation.YES)
@@ -106,17 +99,45 @@ public class ClaudeAiSolver implements AiProvider {
     return null;
   }
 
+  private String buildPrompt(Board board) {
+    int emptyCount = board.emptyCells().size();
+    int maxTile = findMaxTile(board);
+    return "You are playing 2048. Tiles slide in the chosen direction; equal adjacent tiles merge.\n\n"
+        + "Board (0 = empty):\n"
+        + formatBoard(board)
+        + "\nHighest tile: "
+        + maxTile
+        + "  Empty cells: "
+        + emptyCount
+        + "\n\n"
+        + "Strategy: keep the highest tile in a corner; build a monotonically decreasing gradient "
+        + "away from that corner; preserve empty cells to stay alive.\n\n"
+        + "Respond with the single best move: UP, DOWN, LEFT, or RIGHT.";
+  }
+
   private String formatBoard(Board board) {
     StringBuilder sb = new StringBuilder();
+    sb.append("     C0    C1    C2    C3\n");
     for (int row = 0; row < Board.SIZE; row++) {
+      sb.append(String.format("R%d:", row));
       for (int col = 0; col < Board.SIZE; col++) {
         Integer val = board.get(row, col);
-        sb.append(val == null ? "null" : val);
-        if (col < Board.SIZE - 1) sb.append('\t');
+        sb.append(String.format("%6s", val == null ? "0" : val));
       }
       sb.append('\n');
     }
     return sb.toString();
+  }
+
+  private int findMaxTile(Board board) {
+    int max = 0;
+    for (int row = 0; row < Board.SIZE; row++) {
+      for (int col = 0; col < Board.SIZE; col++) {
+        Integer val = board.get(row, col);
+        if (val != null && val > max) max = val;
+      }
+    }
+    return max;
   }
 
   private Direction parseDirection(String text) {
