@@ -37,7 +37,7 @@ Three stateless POST endpoints:
 
 | Endpoint | Input | Output |
 |----------|-------|--------|
-| `/api/game/new` | — | Board with two random `2` tiles |
+| `/api/game/new` | — | Board with 2–8 random `2` tiles |
 | `/api/game/move` | `{board, direction, score}` | New board, score, game state, spawned cell, tile movements |
 | `/api/game/ai-suggest` | `{board}` | Recommended direction |
 
@@ -168,6 +168,6 @@ VITE_API_URL=https://your-backend-url npm run build
 
 ## Assumptions
 
-- The initial board spawns **exactly 2 tiles of value `2`** at random positions, matching the original 2048 behavior. The spec's "random number of `2`s" is interpreted conservatively to ensure a playable starting board.
+- The initial board spawns a **random number of `2` tiles (2–8)** at random positions, matching the spec's "random number of `2`s" and the 8-tile example board shown in the requirements.
 - After reaching 2048, the player can choose to **keep playing** or start a new game (the spec marks 2048 as a win condition but doesn't explicitly say the game must stop).
 - The default AI (expectimax) uses no external services or credentials — it runs entirely in the backend JVM. An optional Claude provider is available when `AI_PROVIDER=claude` and `ANTHROPIC_API_KEY` are set, but no credentials are included in the repository.
