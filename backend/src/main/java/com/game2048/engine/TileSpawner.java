@@ -10,9 +10,10 @@ public class TileSpawner {
 
   private final Random random = new Random();
 
-  /** Places exactly 2 tiles of value 2 at random empty cells. */
+  /** Places a random number of tiles (2–8) of value 2 at random empty cells. */
   public void spawnInitialTiles(Board board) {
-    for (int i = 0; i < 2; i++) {
+    int count = 2 + random.nextInt(7); // 2 inclusive, 8 inclusive
+    for (int i = 0; i < count; i++) {
       List<int[]> empty = board.emptyCells();
       if (empty.isEmpty()) return;
       int[] cell = empty.get(random.nextInt(empty.size()));
